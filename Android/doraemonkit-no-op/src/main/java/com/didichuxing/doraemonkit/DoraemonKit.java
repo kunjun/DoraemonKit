@@ -34,4 +34,14 @@ public class DoraemonKit {
     public static boolean isShow() {
         return false;
     }
+
+    public static void disableUpload() {
+    }
+
+    public static void enableRequestPermissionSelf() {
+    }
+
+    public static void setDebug(boolean debug) {
+
+    }
 }

@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              xmlns:tools="http://schemas.android.com/tools"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent"
-              android:orientation="vertical"
-              tools:context="com.didichuxing.doraemondemo.MainActivity">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.didichuxing.doraemondemo.MainActivity">
 
     <Button
         android:id="@+id/btn_test_urlconnection"
@@ -41,6 +41,31 @@
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:text="模拟 Crash"/>
+
+    <Button
+        android:id="@+id/btn_create_database"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:text="创建数据库"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <Button
+            android:id="@+id/btn_upload_test"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            android:text="上传测试"/>
+
+        <Button
+            android:id="@+id/btn_download_test"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            android:text="下载测试"/>
+    </LinearLayout>
 
 
 </LinearLayout>

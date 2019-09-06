@@ -18,16 +18,13 @@
 #import "DoraemonNetFlowOscillogramWindow.h"
 #import "Doraemoni18NUtil.h"
 #import "DoraemonCellSwitch.h"
-#import "DoraemonCellButton.h"
 #import "DoraemonDefine.h"
-#import "DoraemonNetFlowTestListViewController.h"
 
 
-@interface DoraemonNetFlowViewController ()
+@interface DoraemonNetFlowViewController ()<DoraemonSwitchViewDelegate, DoraemonOscillogramWindowDelegate>
 @property (nonatomic, strong) UITabBarController *tabBar;
 
 @property (nonatomic, strong) DoraemonCellSwitch *switchView;
-@property (nonatomic, strong) DoraemonCellButton *cellBtn;
 
 @end
 
@@ -36,28 +33,21 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     [self initUI];
+    [[DoraemonNetFlowOscillogramWindow shareInstance] addDelegate:self];
 }
 
 - (void)initUI{
     self.title = DoraemonLocalizedString(@"流量检测");
     
-    _switchView = [[DoraemonCellSwitch alloc] initWithFrame:CGRectMake(0, self.bigTitleView.doraemon_bottom, self.view.doraemon_width, kDoraemonSizeFrom750(104))];
+    _switchView = [[DoraemonCellSwitch alloc] initWithFrame:CGRectMake(0, self.bigTitleView.doraemon_bottom, self.view.doraemon_width, kDoraemonSizeFrom750_Landscape(104))];
     [_switchView renderUIWithTitle:DoraemonLocalizedString(@"流量检测开关") switchOn:[[DoraemonCacheManager sharedInstance] netFlowSwitch]];
     [_switchView needTopLine];
     [_switchView needDownLine];
     _switchView.delegate = self;
     [self.view addSubview:_switchView];
-    
-    _cellBtn = [[DoraemonCellButton alloc] initWithFrame:CGRectMake(0, _switchView.doraemon_bottom, self.view.doraemon_width, kDoraemonSizeFrom750(104))];
-    [_cellBtn renderUIWithTitle:DoraemonLocalizedString(@"查看检测记录")];
-    _cellBtn.delegate = self;
-    [_cellBtn needDownLine];
-    [self.view addSubview:_cellBtn];
-    
 
-    
     UIButton *showNetFlowDetailBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-    showNetFlowDetailBtn.frame = CGRectMake(kDoraemonSizeFrom750(32), _cellBtn.doraemon_bottom+kDoraemonSizeFrom750(60), self.view.doraemon_width-2*kDoraemonSizeFrom750(32), kDoraemonSizeFrom750(100));
+    showNetFlowDetailBtn.frame = CGRectMake(kDoraemonSizeFrom750_Landscape(32), _switchView.doraemon_bottom+kDoraemonSizeFrom750_Landscape(60), self.view.doraemon_width-2*kDoraemonSizeFrom750_Landscape(32), kDoraemonSizeFrom750_Landscape(100));
     [showNetFlowDetailBtn setTitle:DoraemonLocalizedString(@"显示流量检测详情") forState:UIControlStateNormal];
     showNetFlowDetailBtn.backgroundColor = [UIColor doraemon_colorWithHexString:@"#337CC4"];
     [showNetFlowDetailBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
@@ -80,15 +70,6 @@
             [[DoraemonNetFlowManager shareInstance] canInterceptNetFlow:NO];
             [self hiddenOscillogramView];
         }
-    }
-}
-
-
-#pragma mark -- DoraemonCellButtonDelegate
-- (void)cellBtnClick:(id)sender{
-    if (sender == _cellBtn) {
-        DoraemonNetFlowTestListViewController *vc = [[DoraemonNetFlowTestListViewController alloc] init];
-        [self.navigationController pushViewController:vc animated:YES];
     }
 }
 
@@ -122,6 +103,11 @@
     tabBar.viewControllers = @[nav1,nav2];
     
     [self presentViewController:tabBar animated:YES completion:nil];
+}
+
+#pragma mark -- DoraemonOscillogramWindowDelegate
+- (void)doraemonOscillogramWindowClosed {
+    [_switchView renderUIWithTitle:DoraemonLocalizedString(@"流量检测开关") switchOn:[[DoraemonCacheManager sharedInstance] netFlowSwitch]];
 }
 
 @end

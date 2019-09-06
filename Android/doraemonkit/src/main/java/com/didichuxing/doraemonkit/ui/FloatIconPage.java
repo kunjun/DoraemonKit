@@ -19,7 +19,7 @@ import com.didichuxing.doraemonkit.ui.base.TouchProxy;
  * Created by zhangweida on 2018/6/22.
  */
 
-public class FloatIconPage extends BaseFloatPage implements TouchProxy.OnTouchEventListener {
+public class FloatIconPage extends BaseFloatPage implements TouchProxy.OnTouchEventListener, FloatPageManager.FloatPageManagerListener {
     protected WindowManager mWindowManager;
 
     private TouchProxy mTouchProxy = new TouchProxy(this);
@@ -37,7 +37,11 @@ public class FloatIconPage extends BaseFloatPage implements TouchProxy.OnTouchEv
         getRootView().setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                return mTouchProxy.onTouchEvent(v, event);
+                if (getRootView() != null) {
+                    return mTouchProxy.onTouchEvent(v, event);
+                } else {
+                    return false;
+                }
             }
         });
     }
@@ -59,6 +63,13 @@ public class FloatIconPage extends BaseFloatPage implements TouchProxy.OnTouchEv
     @Override
     protected void onCreate(Context context) {
         mWindowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        FloatPageManager.getInstance().addListener(this);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        FloatPageManager.getInstance().removeListener(this);
     }
 
     @Override
@@ -89,5 +100,16 @@ public class FloatIconPage extends BaseFloatPage implements TouchProxy.OnTouchEv
     @Override
     public void onDown(int x, int y) {
 
+    }
+
+    @Override
+    public void onPageAdd(BaseFloatPage page) {
+        if (page == this) {
+            return;
+        }
+        FloatPageManager.getInstance().remove(this);
+        PageIntent intent = new PageIntent(FloatIconPage.class);
+        intent.mode = PageIntent.MODE_SINGLE_INSTANCE;
+        FloatPageManager.getInstance().add(intent);
     }
 }

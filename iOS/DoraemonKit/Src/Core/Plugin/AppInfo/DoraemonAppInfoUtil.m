@@ -100,6 +100,14 @@
     return iPhoneXSeries;
 }
 
++ (BOOL)isIpad{
+    NSString *deviceType = [UIDevice currentDevice].model;
+    if ([deviceType isEqualToString:@"iPad"]) {
+        return YES;
+    }
+    return NO;
+}
+
 + (NSString *)locationAuthority{
     NSString *authority = @"";    
     if ([CLLocationManager locationServicesEnabled]) {
@@ -114,8 +122,6 @@
             authority = @"Always";
         }else if(state == kCLAuthorizationStatusAuthorizedWhenInUse){
             authority = @"WhenInUse";
-        }else if(state == kCLAuthorizationStatusAuthorized){
-            authority = @"Authorized";
         }
     }else{
         authority = @"NoEnabled";
@@ -124,14 +130,8 @@
 }
 
 + (NSString *)pushAuthority{
-    if (IOS8) { //iOS8以上包含iOS8
-        if ([[UIApplication sharedApplication] currentUserNotificationSettings].types  == UIRemoteNotificationTypeNone) {
-            return @"NO";
-        }
-    }else{ // ios7 一下
-        if ([[UIApplication sharedApplication] enabledRemoteNotificationTypes]  == UIRemoteNotificationTypeNone) {
-            return @"NO";
-        }
+    if ([[UIApplication sharedApplication] currentUserNotificationSettings].types  == UIUserNotificationTypeNone) {
+        return @"NO";
     }
     return @"YES";
 }
@@ -242,9 +242,27 @@
 
 + (NSString *)addressAuthority{
     NSString *authority = @"";
-    //iOS9.0之前
-    if([[UIDevice currentDevice].systemVersion floatValue] <= __IPHONE_9_0)
-    {
+    if (@available(iOS 9.0, *)) {//iOS9.0之后
+        CNAuthorizationStatus authStatus = [CNContactStore authorizationStatusForEntityType:CNEntityTypeContacts];
+        switch (authStatus) {
+            case CNAuthorizationStatusAuthorized:
+                authority = @"Authorized";
+                break;
+            case CNAuthorizationStatusDenied:
+            {
+                authority = @"Denied";
+            }
+                break;
+            case CNAuthorizationStatusNotDetermined:
+            {
+                authority = @"NotDetermined";
+            }
+                break;
+            case CNAuthorizationStatusRestricted:
+                authority = @"Restricted";
+                break;
+        }
+    }else{//iOS9.0之前
         ABAuthorizationStatus authorStatus = ABAddressBookGetAuthorizationStatus();
         switch (authorStatus) {
             case kABAuthorizationStatusAuthorized:
@@ -264,28 +282,6 @@
                 authority = @"Restricted";
                 break;
             default:
-                break;
-        }
-    }
-    else//iOS9.0之后
-    {
-        CNAuthorizationStatus authStatus = [CNContactStore authorizationStatusForEntityType:CNEntityTypeContacts];
-        switch (authStatus) {
-            case CNAuthorizationStatusAuthorized:
-                authority = @"Authorized";
-                break;
-            case CNAuthorizationStatusDenied:
-            {
-                authority = @"Denied";
-            }
-                break;
-            case CNAuthorizationStatusNotDetermined:
-            {
-                authority = @"NotDetermined";
-            }
-                break;
-            case CNAuthorizationStatusRestricted:
-                authority = @"Restricted";
                 break;
         }
     }
@@ -341,4 +337,16 @@
 }
 
 
+
+#pragma mark 设备是否模拟器
++ (NSString *)deviceIdentifier {
+    struct utsname systemInfo;
+    uname(&systemInfo);
+    return [NSString stringWithCString:systemInfo.machine encoding:NSUTF8StringEncoding];
+}
+
++ (BOOL)isSimulator {
+    NSString *identifier = [self deviceIdentifier];
+    return [identifier isEqualToString:@"i386"] || [identifier isEqualToString:@"x86_64"];
+}
 @end

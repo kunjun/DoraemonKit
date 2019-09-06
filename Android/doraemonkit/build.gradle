@@ -12,7 +12,6 @@ android {
         lintOptions {
             abortOnError false
         }
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         javaCompileOptions { annotationProcessorOptions { includeCompileClasspath = true } }
     }
 
@@ -36,13 +35,13 @@ dependencies {
         transitive=true
         exclude group: 'com.android.support'
     }
-    implementation 'com.squareup.okhttp3:okhttp:3.6.0'
-    compileOnly 'com.squareup.okio:okio:1.11.0'
-    compileOnly 'com.didichuxing.doraemonkit:compiler:1.0.0'
+    implementation 'com.squareup.okhttp3:okhttp:3.12.1'
+    compileOnly 'com.squareup.okio:okio:1.15.0'
     testImplementation 'junit:junit:4.12'
-
-    androidTestImplementation 'com.android.support.test:runner:1.0.2'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+    implementation 'com.google.code.gson:gson:2.8.2'
+    implementation 'com.google.zxing:core:3.3.0'
+    // Android P禁用hide api，这个库可以支持hide api的反射访问
+    implementation 'me.weishu:free_reflection:2.0.0'
 }
 
 

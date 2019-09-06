@@ -12,21 +12,21 @@
 #import "DoraemonMemoryUtil.h"
 #import "DoraemonNetFlowManager.h"
 #import "DoraemonNetFlowDataSource.h"
+#import "DoraemonFPSUtil.h"
 
 @interface DoraemonAllTestManager()
 
 //每秒运行一次
 @property (nonatomic, strong) NSTimer *secondTimer;
 
-@property (nonatomic, strong) CADisplayLink *link;
-@property (nonatomic, assign) NSUInteger count;
-@property (nonatomic, assign) NSTimeInterval lastTime;
 @property (nonatomic, assign) NSInteger fpsValue;
+@property (nonatomic, strong) DoraemonFPSUtil *fpsUtil;
 
 @property (nonatomic, strong) NSMutableArray *commonDataArray;
 
 @property (nonatomic, copy) DoraemonAllTestManagerBlock block;
 
+@property (nonatomic, strong) NSDateFormatter *dateFormatter;
 @end
 
 @implementation DoraemonAllTestManager
@@ -40,18 +40,28 @@
     return instance;
 }
 
+- (NSDateFormatter *)dateFormatter {
+    if (!_dateFormatter) {
+        _dateFormatter = [[NSDateFormatter alloc] init];
+        [_dateFormatter setDateFormat: @"yyyy-MM-dd HH:mm:ss:SSS"];
+    }
+    return _dateFormatter;
+}
+
 - (void)startRecord{
-    [DoraemonAllTestManager shareInstance].startTimeInterval = [[NSDate date] timeIntervalSince1970];
+    [DoraemonAllTestManager shareInstance].startTime = [NSDate date];
     if(!_secondTimer){
         _secondTimer = [NSTimer timerWithTimeInterval:1.0f target:self selector:@selector(doSecondFunction) userInfo:nil repeats:YES];
         [[NSRunLoop currentRunLoop] addTimer:_secondTimer forMode:NSRunLoopCommonModes];
         if(_fpsSwitchOn){
-            if (_link) {
-                _link.paused = NO;
-            }else{
-                _link = [CADisplayLink displayLinkWithTarget:self selector:@selector(trigger:)];
-                [_link addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
+            if (!_fpsUtil) {
+                _fpsUtil = [[DoraemonFPSUtil alloc] init];
+                __weak typeof(self) weakSelf = self;
+                [_fpsUtil addFPSBlock:^(NSInteger fps) {
+                    weakSelf.fpsValue = fps;
+                }];
             }
+            [_fpsUtil start];
         }
     }
     if(_flowSwitchOn){
@@ -60,12 +70,13 @@
 }
 
 - (void)upLoadData{
-    NSString *testTime = [NSString stringWithFormat:@"%f",_startTimeInterval];;
+    NSString *testTime = [self.dateFormatter stringFromDate: self.startTime];
     NSString *phoneName = [DoraemonAppInfoUtil iphoneType];
     NSString *phoneSystem = [[UIDevice currentDevice] systemVersion];
     NSUInteger totalMemory = [DoraemonMemoryUtil totalMemoryForDevice];
     NSUInteger phoneMemory = totalMemory;//MB为单位
-    NSString *appVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
+    NSString *appVersion = [[NSBundle mainBundle] objectForInfoDictionaryKey: @"CFBundleShortVersionString"];
+    
     NSString *appName = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleDisplayName"];
     if (!appName) {
         appName = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleName"];
@@ -76,7 +87,7 @@
     NSMutableArray *flowData = [NSMutableArray array];
     for (DoraemonNetFlowHttpModel *httpModel in httpModelArray) {
         NSString *url = httpModel.url;
-        NSString *time = [NSString stringWithFormat:@"%f",httpModel.startTime];
+        NSString *time = [self.dateFormatter stringFromDate: [NSDate dateWithTimeIntervalSince1970: httpModel.startTime]];
         
         NSString *upFlow = httpModel.uploadFlow;
         NSString *downFlow = httpModel.downFlow;
@@ -114,12 +125,8 @@
         [_secondTimer invalidate];
         _secondTimer = nil;
     }
-    if (_link) {
-        _link.paused = YES;
-        [_link invalidate];
-        _link = nil;
-        _lastTime = 0;
-        _count = 0;
+    if (_fpsUtil) {
+        [_fpsUtil end];
     }
     [self upLoadData];
     
@@ -130,27 +137,9 @@
     
 }
 
-- (void)trigger:(CADisplayLink *)link{
-    if (_lastTime == 0) {
-        _lastTime = link.timestamp;
-        return;
-    }
-    
-    _count++;
-    NSTimeInterval delta = link.timestamp - _lastTime;
-    if (delta < 1) return;
-    _lastTime = link.timestamp;
-    CGFloat fps = _count / delta;
-    _count = 0;
-    
-    NSInteger intFps = (NSInteger)(fps+0.5);
-    _fpsValue = intFps;
-}
-
 - (void)doSecondFunction{
-    //1、获取当前时间戳
-    NSDate *now = [NSDate date];
-    NSString *timeInterval = [NSString stringWithFormat:@"%f",[now timeIntervalSince1970]];
+    //1、获取当前时间
+    NSString *timeString = [self.dateFormatter stringFromDate: [NSDate date]];
     
     //2、获取当前FPS值
     NSInteger fpsValue = -1;
@@ -181,7 +170,7 @@
     
     //6、组装commonData数据
     NSDictionary *commonItemData = @{
-                                     @"time":timeInterval,
+                                     @"time":timeString,
                                      @"fps":@(fpsValue),
                                      @"CPU":@(cpuValue),
                                      @"memory":@(memoryValue)

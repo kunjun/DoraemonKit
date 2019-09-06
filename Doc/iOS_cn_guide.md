@@ -3,10 +3,12 @@
 ### 1、cocoapods依赖
 
 ```
-    pod 'DoraemonKit/Core', '~> 1.1.6', :configurations => ['Debug']
-    pod 'DoraemonKit/WithLogger', '~> 1.1.6', :configurations => ['Debug']
-    pod 'DoraemonKit/WithGPS', '~> 1.1.6', :configurations => ['Debug']
-    pod 'DoraemonKit/WithLoad', '~> 1.1.6', :configurations => ['Debug']
+    pod 'DoraemonKit/Core', '~> 1.2.3', :configurations => ['Debug'] //必选
+    pod 'DoraemonKit/WithLogger', '~> 1.2.3', :configurations => ['Debug'] //可选
+    pod 'DoraemonKit/WithGPS', '~> 1.2.3', :configurations => ['Debug'] //可选
+    pod 'DoraemonKit/WithLoad', '~> 1.2.3', :configurations => ['Debug'] //可选
+    pod 'DoraemonKit/WithWeex', '~> 1.2.3', :configurations => ['Debug'] //可选
+    pod 'DoraemonKit/WithDatabase', '~> 1.2.3', :configurations => ['Debug'] //可选
 ```
 Core subspec作为核心，必须引入。
 
@@ -14,20 +16,29 @@ Core subspec作为核心，必须引入。
 
 MockGPS存在一些兼容性问题（绝大部分情况是好的，问题详见[https://github.com/didi/DoraemonKit/issues/35](https://github.com/didi/DoraemonKit/issues/35)）, 如果你的app接入MockGPS存在问题的话，可以不用引入WithGPS subspec。
 
+如果你要集成Load耗时检测的话，那就请接入WithLoad这个subspec。
+
+如果你要集成Weex的相关专项工具的话，那就请接入WithWeex这个subspec。
+
+如果你要使用YYDebugDatabase在网页端调式数据库的话，那就请接入WithDatabase这个subspec。
+
 
 **tip**：只在Debug环境中进行集成，不要带到线上。有一些hook操作会污染线上代码。
 
 ### 2、使用DoraemonKit内置工具集的接入方式
 在App启动的时候添加一下代码
 
-```
+```objective-c
 #ifdef DEBUG
 #import <DoraemonKit/DoraemonManager.h>
 #endif
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     #ifdef DEBUG
+    	//默认
         [[DoraemonManager shareInstance] install];
+    	// 或者使用传入位置,解决遮挡关键区域,减少频繁移动
+        //[[DoraemonManager shareInstance] installWithStartingPosition:CGPointMake(66, 66)];
     #endif
 }
 ```
@@ -49,7 +60,7 @@ MockGPS存在一些兼容性问题（绝大部分情况是好的，问题详见[
 }
  @end
 ```
- 
+
 
 第二步：在Doraemon初始化的地方添加第一步中添加的“环境切换”插件
 
@@ -78,6 +89,17 @@ MockGPS存在一些兼容性问题（绝大部分情况是好的，问题详见[
     [[DoraemonManager shareInstance] install];
 }
 ```
+
+**tips**:目前也支持使用block方式接入自定义测试模块，使用方式如下：
+
+```
+
+    [[DoraemonManager shareInstance] addPluginWithTitle:@"标题" icon:@"doraemon_default" desc:@"测试插件" pluginName:@"TestPlugin(可以为空)" atModule:DoraemonLocalizedString(@"业务工具") handle:^(NSDictionary *itemData) {
+        NSLog(@"handle block plugin");
+    }];
+    
+```
+
 ### 4、swift 接入方式
 pod 同 OC 一样
 

@@ -40,6 +40,10 @@
 
 - (BOOL)netFlowSwitch;
 
+- (void)saveLargeImageDetectionSwitch:(BOOL)on;
+
+- (BOOL)largeImageDetectionSwitch;
+
 - (void)saveSubThreadUICheckSwitch:(BOOL)on;
 
 - (BOOL)subThreadUICheckSwitch;
@@ -56,4 +60,17 @@
 
 - (BOOL)methodUseTimeSwitch;
 
+- (void)saveStartTimeSwitch:(BOOL)on;
+
+- (BOOL)startTimeSwitch;
+
+/// 历史记录
+- (NSArray<NSString *> *)h5historicalRecord;
+- (void)saveH5historicalRecordWithText:(NSString *)text;
+- (void)clearAllH5historicalRecord;
+- (void)clearH5historicalRecordWithText:(NSString *)text;
+
+/// 保存启动类
+- (void)saveStartClass : (NSString *)startClass;
+- (NSString *)startClass;
 @end
